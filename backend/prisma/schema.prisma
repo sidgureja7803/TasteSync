@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  avatar    String?
+  credits   Int      @default(10000)
+  plan      Plan     @default(FREE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  documents       Document[]
+  generatedContent GeneratedContent[]
+  tokenUsage      TokenUsage[]
+
+  @@map("users")
+}
+
+model Document {
+  id       String      @id @default(cuid())
+  title    String
+  content  String
+  source   ContentSource
+  sourceId String?
+  userId   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  generatedContent GeneratedContent[]
+
+  @@map("documents")
+}
+
+model GeneratedContent {
+  id         String   @id @default(cuid())
+  documentId String
+  platform   Platform
+  tone       String
+  content    String
+  metadata   Json?
+  tokensUsed Int
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("generated_content")
+}
+
+model TokenUsage {
+  id           String   @id @default(cuid())
+  userId       String
+  model        String
+  inputTokens  Int
+  outputTokens Int
+  totalTokens  Int
+  cost         Float
+  operation    String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("token_usage")
+}
+
+// Session model for user sessions
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("sessions")
+}
+
+// Enums
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum ContentSource {
+  PASTE
+  NOTION
+  GOOGLE_DOCS
+}
+
+enum Platform {
+  TWITTER
+  LINKEDIN
+  EMAIL
+} 
