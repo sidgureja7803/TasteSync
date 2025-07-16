@@ -12,11 +12,17 @@
     "db:seed": "ts-node prisma/seed.ts",
     "db:studio": "prisma studio"
   },
-  "keywords": ["api", "ai", "content", "social-media"],
+  "keywords": [
+    "api",
+    "ai",
+    "content",
+    "social-media"
+  ],
   "author": "TasteSync Team",
   "license": "MIT",
   "dependencies": {
     "@clerk/clerk-sdk-node": "^5.0.60",
+    "@copilotkit/backend": "^0.37.0",
     "@prisma/client": "^6.1.0",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
@@ -26,9 +32,11 @@
     "express": "^4.21.2",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
+    "mem0ai": "^2.1.36",
     "morgan": "^1.10.0",
     "prisma": "^6.1.0",
-    "together-ai": "^0.8.1"
+    "tavily": "^1.0.2",
+    "together-ai": "^0.20.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

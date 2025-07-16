@@ -12,6 +12,7 @@ import documentRoutes from './routes/documents';
 import contentRoutes from './routes/content';
 import tokenRoutes from './routes/tokens';
 import publishRoutes from './routes/publish';
+import { copilotKitHandler } from './routes/copilotkit';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -57,6 +58,9 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/tokens', tokenRoutes);
 app.use('/api/publish', publishRoutes);
+
+// CopilotKit route
+app.use('/api/copilotkit', copilotKitHandler);
 
 // Error handling middleware
 app.use(notFound);
