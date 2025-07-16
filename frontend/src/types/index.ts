@@ -108,4 +108,159 @@ export interface AgentResponse {
   data?: any
   error?: string
   tokensUsed?: number
+}
+
+// Research and Memory Types
+
+export interface SearchResult {
+  title: string
+  content: string
+  url: string
+  publishedDate?: string
+  score: number
+  rawContent?: string
+  images?: string[]
+}
+
+export interface TrendingTopic {
+  topic: string
+  volume: number
+  growth: number
+  platform: string
+  relatedTerms: string[]
+  insights: string[]
+}
+
+export interface ResearchResult {
+  topic: string
+  summary: string
+  keyFindings: string[]
+  sources: SearchResult[]
+  competitors?: CompetitorAnalysis[]
+  statistics?: Statistic[]
+  opportunities: string[]
+}
+
+export interface CompetitorAnalysis {
+  name: string
+  approach: string
+  strengths: string[]
+  weaknesses: string[]
+  content: string
+}
+
+export interface Statistic {
+  metric: string
+  value: string
+  source: string
+  date: string
+}
+
+export interface VerificationResult {
+  isAccurate: boolean
+  confidence: number
+  sources: string[]
+  corrections: string[]
+  warnings: string[]
+}
+
+export interface UserPreferences {
+  userId: string
+  platforms: {
+    twitter: boolean
+    linkedin: boolean
+    email: boolean
+  }
+  tones: string[]
+  topics: string[]
+  writingStyle: {
+    length: 'short' | 'medium' | 'long'
+    complexity: 'simple' | 'moderate' | 'complex'
+    formality: 'casual' | 'professional' | 'formal'
+  }
+  contentTypes: string[]
+  targetAudience: string
+  timezone: string
+  language: string
+  preferences: Record<string, any>
+}
+
+export interface PersonalizedRecommendation {
+  type: 'content' | 'tone' | 'platform' | 'timing'
+  title: string
+  description: string
+  confidence: number
+  reason: string
+  data: any
+}
+
+export interface ContentAnalytics {
+  userId: string
+  timeRange: string
+  totalContent: number
+  platformBreakdown: Record<string, number>
+  toneBreakdown: Record<string, number>
+  engagement: {
+    averageScore: number
+    topPerforming: string[]
+    improvement: string[]
+  }
+  trends: {
+    topics: string[]
+    growth: number[]
+    opportunities: string[]
+  }
+  recommendations: PersonalizedRecommendation[]
+}
+
+export interface UserFeedback {
+  userId: string
+  contentId: string
+  rating: number
+  feedback: string
+  category: 'quality' | 'accuracy' | 'relevance' | 'engagement'
+  improvements: string[]
+  timestamp: Date
+}
+
+export interface MemoryEntry {
+  id: string
+  userId: string
+  type: 'preference' | 'pattern' | 'feedback' | 'conversation'
+  content: string
+  metadata: Record<string, any>
+  importance: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface EnhancedGenerationRequest {
+  content: string
+  platform: string
+  tone: string
+  userId: string
+  useResearch?: boolean
+  useMemory?: boolean
+  customInstructions?: string
+  researchOptions?: {
+    includeCompetitors?: boolean
+    includeStats?: boolean
+    maxResults?: number
+  }
+}
+
+export interface EnhancedGenerationResponse {
+  success: boolean
+  content: string
+  research?: ResearchResult
+  personalization?: {
+    appliedPreferences: string[]
+    recommendations: PersonalizedRecommendation[]
+  }
+  verification?: VerificationResult
+  metadata: {
+    tokensUsed: number
+    processingTime: number
+    confidence: number
+  }
 } 

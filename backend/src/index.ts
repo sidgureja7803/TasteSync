@@ -12,6 +12,7 @@ import documentRoutes from './routes/documents';
 import contentRoutes from './routes/content';
 import tokenRoutes from './routes/tokens';
 import publishRoutes from './routes/publish';
+import enhancedRoutes from './routes/enhanced';
 import { copilotKitHandler } from './routes/copilotkit';
 
 // Import middleware
