@@ -62,5 +62,24 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [require('tailwindcss/plugin')(({ addUtilities, addComponents, matchUtilities, addBase, theme }) => {
+    addUtilities({
+      '.content-auto': {
+        'content-visibility': 'auto',
+      },
+    }),
+    // Add animation utilities
+    addUtilities({
+      '.animate-fade-in': {
+        animation: 'fade-in 0.5s ease-in-out',
+      },
+      '.animate-slide-up': {
+        animation: 'slide-up 0.8s ease-out',
+      },
+      '.animate-bounce-in': {
+        animation: 'bounce-in 1s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+      },
+    })
+  })],
+
 } 

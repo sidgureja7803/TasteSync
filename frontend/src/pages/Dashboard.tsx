@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
+import { Button } from '../components/ui/button'
 import { CopilotTextarea } from '@copilotkit/react-textarea'
-import { useCopilotContext, useCopilotReadable, useCopilotAction } from '@copilotkit/react-core'
-import { ResearchPanel } from '@/components/research/ResearchPanel'
-import { PreferencesPanel } from '@/components/memory/PreferencesPanel'
-import { AnalyticsPanel } from '@/components/memory/AnalyticsPanel'
+import { useCopilotReadable, useCopilotAction } from '@copilotkit/react-core'
+import { ResearchPanel } from '../components/research/ResearchPanel'
+import { PreferencesPanel } from '../components/memory/PreferencesPanel'
+import { AnalyticsPanel } from '../components/memory/AnalyticsPanel'     
 import { 
   FileText, 
   Save, 

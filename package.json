@@ -14,10 +14,18 @@
     "frontend:start": "cd frontend && npm run preview",
     "backend:start": "cd backend && npm start"
   },
-  "keywords": ["ai", "content", "social-media", "automation"],
+  "keywords": [
+    "ai",
+    "content",
+    "social-media",
+    "automation"
+  ],
   "author": "TasteSync Team",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.11"
   }
-} 
+}

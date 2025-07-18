@@ -1,16 +1,15 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '../components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { 
   BookOpen, 
   Brain, 
   Globe, 
   Zap, 
   Target, 
-  Clock, 
-  Check, 
-  Star,
   Twitter,
   Linkedin,
   Mail,
@@ -22,10 +21,146 @@ import {
 } from 'lucide-react'
 
 export default function LandingPage() {
+  // Refs for GSAP animations
+  const headerRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const featuresRef = useRef<HTMLDivElement>(null);
+  const howItWorksRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement[]>([]);
+
+  // Initialize GSAP
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+    
+    // Header animation
+    gsap.from(headerRef.current, {
+      y: -100,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+    });
+    
+    // Hero section animation
+    gsap.from(heroRef.current?.querySelector('h1'), {
+      opacity: 0,
+      y: 50,
+      duration: 1,
+      delay: 0.3,
+      ease: 'power3.out',
+    });
+    
+    gsap.from(heroRef.current?.querySelector('p'), {
+      opacity: 0,
+      y: 30,
+      duration: 1,
+      delay: 0.5,
+      ease: 'power3.out',
+    });
+    
+    gsap.from(heroRef.current?.querySelectorAll('.flex button'), {
+      opacity: 0,
+      y: 20,
+      duration: 0.8,
+      delay: 0.7,
+      stagger: 0.2,
+      ease: 'power3.out',
+    });
+    
+    // Feature cards animation
+    if (cardsRef.current.length > 0) {
+      cardsRef.current.forEach((card, index) => {
+        gsap.from(card, {
+          scrollTrigger: {
+            trigger: card,
+            start: 'top bottom-=100px',
+            toggleActions: 'play none none none',
+          },
+          opacity: 0,
+          y: 50,
+          duration: 0.8,
+          delay: index * 0.1,
+          ease: 'power3.out',
+        });
+      });
+    }
+    
+    // How it works animation
+    gsap.from(howItWorksRef.current?.querySelectorAll('.text-center'), {
+      scrollTrigger: {
+        trigger: howItWorksRef.current,
+        start: 'top bottom-=100px',
+      },
+      opacity: 0,
+      y: 30,
+      stagger: 0.2,
+      duration: 0.8,
+      ease: 'power3.out',
+    });
+    
+    // CTA section animation
+    gsap.from(ctaRef.current?.querySelector('h2'), {
+      scrollTrigger: {
+        trigger: ctaRef.current,
+        start: 'top bottom-=100px',
+      },
+      opacity: 0,
+      y: 30,
+      duration: 0.8,
+      ease: 'power3.out',
+    });
+    
+    gsap.from(ctaRef.current?.querySelector('p'), {
+      scrollTrigger: {
+        trigger: ctaRef.current,
+        start: 'top bottom-=100px',
+      },
+      opacity: 0,
+      y: 20,
+      duration: 0.8,
+      delay: 0.2,
+      ease: 'power3.out',
+    });
+    
+    gsap.from(ctaRef.current?.querySelectorAll('button'), {
+      scrollTrigger: {
+        trigger: ctaRef.current,
+        start: 'top bottom-=100px',
+      },
+      opacity: 0,
+      y: 20,
+      stagger: 0.2,
+      duration: 0.8,
+      delay: 0.4,
+      ease: 'power3.out',
+    });
+    
+    // Footer animation
+    gsap.from(footerRef.current, {
+      scrollTrigger: {
+        trigger: footerRef.current,
+        start: 'top bottom',
+      },
+      opacity: 0,
+      y: 20,
+      duration: 1,
+      ease: 'power3.out',
+    });
+  }, []);
+  
+  // Add card element to cardsRef array
+  const addToCardsRef = (el: HTMLDivElement | null) => {
+    if (el && !cardsRef.current.includes(el)) {
+      cardsRef.current.push(el);
+    }
+    return undefined;
+  };
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm fixed w-full z-50">
+      <header ref={headerRef} className="border-b bg-white/80 backdrop-blur-sm fixed w-full z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
@@ -51,7 +186,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 px-4">
+      <section ref={heroRef} className="pt-24 pb-16 px-4">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
@@ -77,7 +212,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-16 px-4">
+      <section ref={featuresRef} id="features" className="py-16 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Powered by CopilotKit + DeepSeek-V3</h2>
@@ -85,7 +220,7 @@ export default function LandingPage() {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={el => el && addToCardsRef(el)}>
               <CardHeader>
                 <MessageSquare className="w-12 h-12 text-blue-600 mb-4" />
                 <CardTitle className="text-xl">AI-Powered Editor</CardTitle>
@@ -95,7 +230,7 @@ export default function LandingPage() {
               </CardHeader>
             </Card>
             
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={el => el && addToCardsRef(el)}>
               <CardHeader>
                 <Sparkles className="w-12 h-12 text-purple-600 mb-4" />
                 <CardTitle className="text-xl">Smart Conversations</CardTitle>
@@ -105,7 +240,7 @@ export default function LandingPage() {
               </CardHeader>
             </Card>
             
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={el => el && addToCardsRef(el)}>
               <CardHeader>
                 <Target className="w-12 h-12 text-green-600 mb-4" />
                 <CardTitle className="text-xl">Context-Aware</CardTitle>
@@ -117,7 +252,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={el => el && addToCardsRef(el)}>
               <CardHeader>
                 <Globe className="w-12 h-12 text-blue-600 mb-4" />
                 <CardTitle className="text-xl">Multi-Platform</CardTitle>
@@ -127,7 +262,7 @@ export default function LandingPage() {
               </CardHeader>
             </Card>
             
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={el => el && addToCardsRef(el)}>
               <CardHeader>
                 <Zap className="w-12 h-12 text-yellow-600 mb-4" />
                 <CardTitle className="text-xl">Real-Time Processing</CardTitle>
@@ -151,7 +286,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-16 px-4 bg-white/50">
+      <section ref={howItWorksRef} id="how-it-works" className="py-16 px-4 bg-white/50">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">How CopilotKit Powers Your Content</h2>
@@ -195,7 +330,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4">
+      <section ref={ctaRef} className="py-16 px-4">
         <div className="container mx-auto text-center">
           <div className="max-w-2xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Transform Your Content?</h2>
@@ -219,7 +354,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4">
+      <footer ref={footerRef} className="bg-gray-900 text-white py-12 px-4">
         <div className="container mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
