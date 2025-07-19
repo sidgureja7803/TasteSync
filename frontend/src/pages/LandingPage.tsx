@@ -1,11 +1,10 @@
 import React, { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '../components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
+import { Card, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { 
-  BookOpen, 
   Brain, 
   Globe, 
   Zap, 
@@ -17,7 +16,8 @@ import {
   Users,
   TrendingUp,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  Star
 } from 'lucide-react'
 
 export default function LandingPage() {
@@ -35,38 +35,51 @@ export default function LandingPage() {
     gsap.registerPlugin(ScrollTrigger);
     
     // Header animation
-    gsap.from(headerRef.current, {
-      y: -100,
-      opacity: 0,
-      duration: 0.8,
-      ease: 'power3.out',
-    });
+    if (headerRef.current) {
+      gsap.from(headerRef.current, {
+        y: -100,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+      });
+    }
     
     // Hero section animation
-    gsap.from(heroRef.current?.querySelector('h1'), {
-      opacity: 0,
-      y: 50,
-      duration: 1,
-      delay: 0.3,
-      ease: 'power3.out',
-    });
-    
-    gsap.from(heroRef.current?.querySelector('p'), {
-      opacity: 0,
-      y: 30,
-      duration: 1,
-      delay: 0.5,
-      ease: 'power3.out',
-    });
-    
-    gsap.from(heroRef.current?.querySelectorAll('.flex button'), {
-      opacity: 0,
-      y: 20,
-      duration: 0.8,
-      delay: 0.7,
-      stagger: 0.2,
-      ease: 'power3.out',
-    });
+    if (heroRef.current) {
+      const h1Element = heroRef.current.querySelector('h1');
+      if (h1Element) {
+        gsap.from(h1Element, {
+          opacity: 0,
+          y: 50,
+          duration: 1,
+          delay: 0.3,
+          ease: 'power3.out',
+        });
+      }
+      
+      const pElement = heroRef.current.querySelector('p');
+      if (pElement) {
+        gsap.from(pElement, {
+          opacity: 0,
+          y: 30,
+          duration: 1,
+          delay: 0.5,
+          ease: 'power3.out',
+        });
+      }
+      
+      const buttons = heroRef.current.querySelectorAll('.flex button');
+      if (buttons.length > 0) {
+        gsap.from(buttons, {
+          opacity: 0,
+          y: 20,
+          duration: 0.8,
+          delay: 0.7,
+          stagger: 0.2,
+          ease: 'power3.out',
+        });
+      }
+    }
     
     // Feature cards animation
     if (cardsRef.current.length > 0) {
@@ -87,66 +100,84 @@ export default function LandingPage() {
     }
     
     // How it works animation
-    gsap.from(howItWorksRef.current?.querySelectorAll('.text-center'), {
-      scrollTrigger: {
-        trigger: howItWorksRef.current,
-        start: 'top bottom-=100px',
-      },
-      opacity: 0,
-      y: 30,
-      stagger: 0.2,
-      duration: 0.8,
-      ease: 'power3.out',
-    });
+    if (howItWorksRef.current) {
+      const textCenters = howItWorksRef.current.querySelectorAll('.text-center');
+      if (textCenters.length > 0) {
+        gsap.from(textCenters, {
+          scrollTrigger: {
+            trigger: howItWorksRef.current,
+            start: 'top bottom-=100px',
+          },
+          opacity: 0,
+          y: 30,
+          stagger: 0.2,
+          duration: 0.8,
+          ease: 'power3.out',
+        });
+      }
+    }
     
     // CTA section animation
-    gsap.from(ctaRef.current?.querySelector('h2'), {
-      scrollTrigger: {
-        trigger: ctaRef.current,
-        start: 'top bottom-=100px',
-      },
-      opacity: 0,
-      y: 30,
-      duration: 0.8,
-      ease: 'power3.out',
-    });
-    
-    gsap.from(ctaRef.current?.querySelector('p'), {
-      scrollTrigger: {
-        trigger: ctaRef.current,
-        start: 'top bottom-=100px',
-      },
-      opacity: 0,
-      y: 20,
-      duration: 0.8,
-      delay: 0.2,
-      ease: 'power3.out',
-    });
-    
-    gsap.from(ctaRef.current?.querySelectorAll('button'), {
-      scrollTrigger: {
-        trigger: ctaRef.current,
-        start: 'top bottom-=100px',
-      },
-      opacity: 0,
-      y: 20,
-      stagger: 0.2,
-      duration: 0.8,
-      delay: 0.4,
-      ease: 'power3.out',
-    });
+    if (ctaRef.current) {
+      const h2Element = ctaRef.current.querySelector('h2');
+      if (h2Element) {
+        gsap.from(h2Element, {
+          scrollTrigger: {
+            trigger: ctaRef.current,
+            start: 'top bottom-=100px',
+          },
+          opacity: 0,
+          y: 30,
+          duration: 0.8,
+          ease: 'power3.out',
+        });
+      }
+      
+      const pElement = ctaRef.current.querySelector('p');
+      if (pElement) {
+        gsap.from(pElement, {
+          scrollTrigger: {
+            trigger: ctaRef.current,
+            start: 'top bottom-=100px',
+          },
+          opacity: 0,
+          y: 20,
+          duration: 0.8,
+          delay: 0.2,
+          ease: 'power3.out',
+        });
+      }
+      
+      const buttons = ctaRef.current.querySelectorAll('button');
+      if (buttons.length > 0) {
+        gsap.from(buttons, {
+          scrollTrigger: {
+            trigger: ctaRef.current,
+            start: 'top bottom-=100px',
+          },
+          opacity: 0,
+          y: 20,
+          stagger: 0.2,
+          duration: 0.8,
+          delay: 0.4,
+          ease: 'power3.out',
+        });
+      }
+    }
     
     // Footer animation
-    gsap.from(footerRef.current, {
-      scrollTrigger: {
-        trigger: footerRef.current,
-        start: 'top bottom',
-      },
-      opacity: 0,
-      y: 20,
-      duration: 1,
-      ease: 'power3.out',
-    });
+    if (footerRef.current) {
+      gsap.from(footerRef.current, {
+        scrollTrigger: {
+          trigger: footerRef.current,
+          start: 'top bottom',
+        },
+        opacity: 0,
+        y: 20,
+        duration: 1,
+        ease: 'power3.out',
+      });
+    }
   }, []);
   
   // Add card element to cardsRef array
@@ -154,7 +185,6 @@ export default function LandingPage() {
     if (el && !cardsRef.current.includes(el)) {
       cardsRef.current.push(el);
     }
-    return undefined;
   };
   
   return (
@@ -220,7 +250,7 @@ export default function LandingPage() {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={el => el && addToCardsRef(el)}>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={addToCardsRef}>
               <CardHeader>
                 <MessageSquare className="w-12 h-12 text-blue-600 mb-4" />
                 <CardTitle className="text-xl">AI-Powered Editor</CardTitle>
@@ -230,7 +260,7 @@ export default function LandingPage() {
               </CardHeader>
             </Card>
             
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={el => el && addToCardsRef(el)}>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={addToCardsRef}>
               <CardHeader>
                 <Sparkles className="w-12 h-12 text-purple-600 mb-4" />
                 <CardTitle className="text-xl">Smart Conversations</CardTitle>
@@ -240,7 +270,7 @@ export default function LandingPage() {
               </CardHeader>
             </Card>
             
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={el => el && addToCardsRef(el)}>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={addToCardsRef}>
               <CardHeader>
                 <Target className="w-12 h-12 text-green-600 mb-4" />
                 <CardTitle className="text-xl">Context-Aware</CardTitle>
@@ -252,7 +282,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={el => el && addToCardsRef(el)}>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={addToCardsRef}>
               <CardHeader>
                 <Globe className="w-12 h-12 text-blue-600 mb-4" />
                 <CardTitle className="text-xl">Multi-Platform</CardTitle>
@@ -262,7 +292,7 @@ export default function LandingPage() {
               </CardHeader>
             </Card>
             
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={el => el && addToCardsRef(el)}>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow" ref={addToCardsRef}>
               <CardHeader>
                 <Zap className="w-12 h-12 text-yellow-600 mb-4" />
                 <CardTitle className="text-xl">Real-Time Processing</CardTitle>
