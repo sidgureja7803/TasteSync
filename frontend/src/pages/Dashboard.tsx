@@ -1,455 +1,297 @@
-import React, { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
-import { Button } from '../components/ui/button'
-import { CopilotTextarea } from '@copilotkit/react-textarea'
-import { useCopilotReadable, useCopilotAction } from '@copilotkit/react-core'
-import { ResearchPanel } from '../components/research/ResearchPanel'
-import { PreferencesPanel } from '../components/memory/PreferencesPanel'
-import { AnalyticsPanel } from '../components/memory/AnalyticsPanel'     
-import { 
-  FileText, 
-  Save, 
-  Download, 
-  Share, 
-  Settings,
-  MessageSquare,
-  Brain,
-  Twitter,
-  Linkedin,
-  Mail,
-  Search,
-  TrendingUp,
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
   BarChart3,
-  User,
-  Sparkles
-} from 'lucide-react'
+  TrendingUp,
+  Users,
+  FileText,
+  Plus,
+  BarChart2,
+  Settings,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Loader2
+} from 'lucide-react';
+import { Button } from '../components/ui/button';
+import ContentGrid from '../components/content/ContentGrid';
+import { ContentItem, ContentPlatform } from '../components/content/ContentCard';
+import { useDocuments } from '../context/DocumentsContext';
+import { useContent } from '../context/ContentContext';
+import { useToast } from '../components/ui/toast-container';
 
-export default function Dashboard() {
-  const [content, setContent] = useState('')
-  const [selectedPlatform, setSelectedPlatform] = useState('twitter')
-  const [selectedTone, setSelectedTone] = useState('professional')
-  const [showResearchPanel, setShowResearchPanel] = useState(false)
-  const [showPreferencesPanel, setShowPreferencesPanel] = useState(false)
-  const [showAnalyticsPanel, setShowAnalyticsPanel] = useState(false)
-  const [enhancedMode, setEnhancedMode] = useState(false)
-
-  // Mock user ID - in real app, this would come from auth
-  const userId = 'user-123'
-
-  const platforms = [
-    { id: 'twitter', name: 'Twitter', icon: Twitter },
-    { id: 'linkedin', name: 'LinkedIn', icon: Linkedin },
-    { id: 'email', name: 'Email', icon: Mail }
-  ]
-
-  const tones = [
-    { id: 'professional', name: 'Professional' },
-    { id: 'casual', name: 'Casual' },
-    { id: 'friendly', name: 'Friendly' },
-    { id: 'formal', name: 'Formal' },
-    { id: 'humorous', name: 'Humorous' }
-  ]
-
-  // Make user preferences available to CopilotKit
-  useCopilotReadable({
-    description: 'Current user preferences for content optimization',
-    value: {
-      selectedPlatform,
-      selectedTone,
-      content,
-      enhancedMode,
-      userId,
-      platformGuidelines: {
-        twitter: 'Keep it concise (280 characters max), use hashtags, make it engaging',
-        linkedin: 'Professional tone, longer form allowed, focus on business value',
-        email: 'Clear subject line, structured content, call-to-action'
+const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const { documents, fetchDocuments, deleteDocument, isLoading: docsLoading } = useDocuments();
+  const { generatedContent, fetchGeneratedContent, deleteGeneratedContent, isLoading: contentLoading } = useContent();
+  const toast = useToast();
+  
+  // Local state
+  const [recentContent, setRecentContent] = useState<ContentItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [stats, setStats] = useState({
+    totalContent: 0,
+    publishedPosts: 0,
+    totalEngagement: 0,
+    avgConversion: 0
+  });
+  
+  // Activity feed data - we'll keep this mock for now
+  // In a real implementation, this would come from an API
+  const activityItems = [
+    { id: 1, type: 'publish', content: 'Your post "How AI is Transforming Content Creation" was published to Twitter', time: '2 hours ago', icon: <CheckCircle2 size={16} className="text-green-500" /> },
+    { id: 2, type: 'engagement', content: 'Your LinkedIn post received 24 new engagements', time: 'Yesterday', icon: <TrendingUp size={16} className="text-blue-500" /> },
+    { id: 3, type: 'alert', content: 'Scheduled post for Instagram failed to publish', time: '2 days ago', icon: <AlertCircle size={16} className="text-red-500" /> },
+    { id: 4, type: 'system', content: 'System maintenance completed successfully', time: '3 days ago', icon: <Settings size={16} className="text-gray-500" /> },
+  ];
+  
+  // Fetch data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await fetchDocuments();
+        // For now, we'll just fetch content for the first document if available
+        if (documents.length > 0) {
+          await fetchGeneratedContent(documents[0].id);
+        }
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        toast.showToast('error', 'Failed to load dashboard data. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
+    };
+    
+    loadData();
+  }, []);
+  
+  // Map documents to ContentItem format
+  useEffect(() => {
+    if (documents.length > 0) {
+      const mappedContent: ContentItem[] = documents.map(doc => {
+        // Determine platforms from generated content
+        const platforms: ContentPlatform[] = doc.generatedContent
+          ? doc.generatedContent.map(gc => gc.platform.toLowerCase() as ContentPlatform)
+          : ['web'];
+        
+        // Determine status (simplified for now)
+        const status = doc.generatedContent && doc.generatedContent.length > 0 ? 'published' : 'draft';
+        
+        return {
+          id: doc.id,
+          title: doc.title,
+          description: doc.content.substring(0, 120) + (doc.content.length > 120 ? '...' : ''),
+          status: status as any,
+          platforms,
+          createdAt: doc.createdAt,
+          updatedAt: doc.updatedAt,
+          // We don't have thumbnails in our data model yet, so using a placeholder
+          thumbnailUrl: `https://source.unsplash.com/random/300x200?sig=${doc.id}`
+        };
+      });
+      
+      setRecentContent(mappedContent.slice(0, 4)); // Show only the 4 most recent
+      
+      // Update stats
+      setStats({
+        totalContent: documents.length,
+        publishedPosts: documents.filter(doc => doc.generatedContent && doc.generatedContent.length > 0).length,
+        totalEngagement: Math.floor(Math.random() * 2000), // Mock data for now
+        avgConversion: parseFloat((Math.random() * 5).toFixed(1)) // Mock data for now
+      });
     }
-  })
+  }, [documents]);
+  
+  // Handler functions
+  const handleEdit = (id: string) => {
+    navigate(`/content/${id}`);
+  };
 
-  // Add enhanced action for AI rewriting with research and memory
-  useCopilotAction({
-    name: 'rewrite_content_enhanced',
-    description: 'Rewrite the current content with AI research and personalization',
-    parameters: [
-      {
-        name: 'newContent',
-        type: 'string',
-        description: 'The enhanced rewritten content',
-        required: true,
-      },
-      {
-        name: 'researchInsights',
-        type: 'string',
-        description: 'Research insights used in the rewrite',
-        required: false,
-      },
-      {
-        name: 'personalizationApplied',
-        type: 'string',
-        description: 'Personalization features applied',
-        required: false,
-      },
-    ],
-    handler: async ({ newContent, researchInsights, personalizationApplied }: any) => {
-      setContent(newContent)
-      if (researchInsights) {
-        console.log('Research insights:', researchInsights)
+  const handleDelete = async (id: string) => {
+    try {
+      const success = await deleteDocument(id);
+      if (success) {
+        toast.showToast('success', 'Document deleted successfully');
       }
-      if (personalizationApplied) {
-        console.log('Personalization applied:', personalizationApplied)
-      }
-    },
-  })
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast.showToast('error', 'Failed to delete document. Please try again.');
+    }
+  };
 
-  // Add original action for basic AI rewriting
-  useCopilotAction({
-    name: 'rewrite_content',
-    description: 'Rewrite the current content for the selected platform and tone',
-    parameters: [
-      {
-        name: 'newContent',
-        type: 'string',
-        description: 'The rewritten content',
-        required: true,
-      },
-    ],
-    handler: async ({ newContent }: any) => {
-      setContent(newContent)
-    },
-  })
+  const handleView = (id: string) => {
+    navigate(`/content/${id}`);
+  };
 
-  // Add action for suggesting improvements
-  useCopilotAction({
-    name: 'suggest_improvements',
-    description: 'Suggest improvements for the current content',
-    parameters: [
-      {
-        name: 'suggestions',
-        type: 'string',
-        description: 'Improvement suggestions',
-        required: true,
-      },
-    ],
-    handler: async ({ suggestions }: any) => {
-      // Display suggestions in a toast or modal
-      console.log('AI Suggestions:', suggestions)
-      alert('AI Suggestions:\n' + suggestions)
-    },
-  })
+  const handleShare = (id: string) => {
+    // This would be implemented with a sharing API
+    toast.showToast('info', 'Sharing functionality will be implemented soon');
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <Brain className="w-5 h-5 text-white" />
+    <div className="space-y-8">
+      {/* Welcome header */}
+      <div>
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground mt-1">
+          Welcome to your TasteSync dashboard. Here you can manage your content and see analytics.
+        </p>
+      </div>
+      
+      {/* Statistics overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-muted-foreground text-sm">Total Content</p>
+              <h3 className="text-2xl font-bold mt-1">{stats.totalContent}</h3>
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              TasteSync
-            </span>
+            <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+              <FileText size={20} />
+            </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <Button
-              variant={enhancedMode ? "default" : "outline"}
-              size="sm"
-              onClick={() => setEnhancedMode(!enhancedMode)}
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Enhanced Mode
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowAnalyticsPanel(true)}
-            >
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Analytics
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowPreferencesPanel(true)}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </Button>
-            <Button variant="outline" size="sm">
-              <Share className="w-4 h-4 mr-2" />
-              Share
-            </Button>
+          <div className="mt-2 text-xs text-green-600 flex items-center">
+            <TrendingUp size={14} className="mr-1" />
+            <span>12% increase this month</span>
           </div>
         </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Content Editor */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileText className="w-5 h-5 mr-2" />
-                  Content Editor
-                  {enhancedMode && (
-                    <span className="ml-2 text-xs bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2 py-1 rounded-full">
-                      Enhanced
-                    </span>
-                  )}
-                </CardTitle>
-                <CardDescription>
-                  {enhancedMode 
-                    ? 'AI-powered content editor with research and personalization features.'
-                    : 'Write your long-form content here. The AI will help you transform it into platform-specific posts.'
-                  }
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Enhanced Mode Tools */}
-                  {enhancedMode && (
-                    <div className="flex space-x-2 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-md">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowResearchPanel(true)}
-                      >
-                        <Search className="w-4 h-4 mr-2" />
-                        Research
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowPreferencesPanel(true)}
-                      >
-                        <User className="w-4 h-4 mr-2" />
-                        Preferences
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowAnalyticsPanel(true)}
-                      >
-                        <TrendingUp className="w-4 h-4 mr-2" />
-                        Insights
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Platform Selection */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Target Platform</label>
-                    <div className="flex space-x-2">
-                      {platforms.map(platform => {
-                        const Icon = platform.icon
-                        return (
-                          <Button
-                            key={platform.id}
-                            variant={selectedPlatform === platform.id ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setSelectedPlatform(platform.id)}
-                          >
-                            <Icon className="w-4 h-4 mr-2" />
-                            {platform.name}
-                          </Button>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Tone Selection */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Tone</label>
-                    <select 
-                      value={selectedTone} 
-                      onChange={(e) => setSelectedTone(e.target.value)}
-                      className="w-full p-2 border rounded-md"
-                    >
-                      {tones.map(tone => (
-                        <option key={tone.id} value={tone.id}>
-                          {tone.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* CopilotTextarea - AI-powered content editor */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Content</label>
-                    <CopilotTextarea
-                      value={content}
-                      onValueChange={setContent}
-                      placeholder={`Start writing your content here... 
-
-You can use markdown formatting:
-- **bold text**
-- *italic text*
-- # Headers
-- - Lists
-- [links](https://example.com)
-
-${enhancedMode ? 'Enhanced mode is active! The AI will use research and personalization features to help optimize your content.' : 'The AI will help you optimize this content for your selected platform and tone.'}
-
-Try asking: ${enhancedMode ? '"Research this topic and rewrite in casual tone"' : '"Rewrite this in casual tone"'} or "Make this better for ${selectedPlatform}"`}
-                      className="w-full h-96 p-4 border rounded-md font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      autosuggestionsConfig={{
-                        textareaPurpose: `Content editor for ${selectedPlatform} posts with ${selectedTone} tone${enhancedMode ? ' (Enhanced mode with research and personalization)' : ''}`,
-                        chatApiConfigs: {}
-                      }}
-                    />
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex space-x-2">
-                    <Button>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Draft
-                    </Button>
-                    <Button variant="outline">
-                      <Download className="w-4 h-4 mr-2" />
-                      Export
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => {
-                        // Trigger AI rewrite
-                        const prompt = enhancedMode 
-                          ? `[Enhanced AI with research and personalization is rewriting this content for ${selectedPlatform} with ${selectedTone} tone...]`
-                          : `[AI is rewriting this content for ${selectedPlatform} with ${selectedTone} tone...]`
-                        setContent(prev => prev + '\n\n' + prompt);
-                      }}
-                    >
-                      <Brain className="w-4 h-4 mr-2" />
-                      {enhancedMode ? 'Enhanced AI Rewrite' : 'AI Rewrite'}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        
+        <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-muted-foreground text-sm">Published Posts</p>
+              <h3 className="text-2xl font-bold mt-1">{stats.publishedPosts}</h3>
+            </div>
+            <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 dark:bg-green-900/30 dark:text-green-400">
+              <CheckCircle2 size={20} />
+            </div>
           </div>
-
-          {/* AI Assistant Panel */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <MessageSquare className="w-5 h-5 mr-2" />
-                  AI Assistant
-                  {enhancedMode && (
-                    <span className="ml-2 text-xs bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2 py-1 rounded-full">
-                      Enhanced
-                    </span>
-                  )}
-                </CardTitle>
-                <CardDescription>
-                  {enhancedMode 
-                    ? 'Enhanced AI assistant with research and personalization capabilities.'
-                    : 'Chat with your AI assistant to get help with content optimization.'
-                  }
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-sm text-gray-600">
-                    Current settings: <strong>{selectedPlatform}</strong> with <strong>{selectedTone}</strong> tone
-                    {enhancedMode && <span className="text-blue-600"> (Enhanced Mode)</span>}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Try asking:
-                  </div>
-                  <div className="space-y-2">
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      "Rewrite in {selectedTone} tone"
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      "Make this better for {selectedPlatform}"
-                    </Button>
-                    {enhancedMode && (
-                      <>
-                        <Button variant="outline" size="sm" className="w-full justify-start">
-                          "Research this topic and optimize"
-                        </Button>
-                        <Button variant="outline" size="sm" className="w-full justify-start">
-                          "Personalize based on my preferences"
-                        </Button>
-                        <Button variant="outline" size="sm" className="w-full justify-start">
-                          "What's trending in my industry?"
-                        </Button>
-                      </>
-                    )}
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      "Add more engagement hooks"
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      "Suggest improvements"
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Generated Content Preview */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Generated Content</CardTitle>
-                <CardDescription>
-                  {enhancedMode 
-                    ? `AI-enhanced content for ${selectedPlatform} with research and personalization`
-                    : `AI-optimized content for ${selectedPlatform} in ${selectedTone} tone`
-                  }
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm text-gray-500 text-center py-8">
-                  {content ? (
-                    <div className="text-left">
-                      <p className="font-medium mb-2">Preview:</p>
-                      <div className="bg-gray-50 p-3 rounded border text-sm">
-                        {content.substring(0, 200)}
-                        {content.length > 200 && '...'}
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="mb-2">Start writing content to see AI-generated suggestions here.</p>
-                      {enhancedMode && (
-                        <p className="text-blue-600 text-xs">Enhanced mode will provide research insights and personalized recommendations.</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+          <div className="mt-2 text-xs text-green-600 flex items-center">
+            <TrendingUp size={14} className="mr-1" />
+            <span>8% increase this month</span>
+          </div>
+        </div>
+        
+        <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-muted-foreground text-sm">Total Engagement</p>
+              <h3 className="text-2xl font-bold mt-1">{stats.totalEngagement.toLocaleString()}</h3>
+            </div>
+            <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+              <Users size={20} />
+            </div>
+          </div>
+          <div className="mt-2 text-xs text-green-600 flex items-center">
+            <TrendingUp size={14} className="mr-1" />
+            <span>24% increase this month</span>
+          </div>
+        </div>
+        
+        <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-muted-foreground text-sm">Avg. Conversion</p>
+              <h3 className="text-2xl font-bold mt-1">{stats.avgConversion}%</h3>
+            </div>
+            <div className="h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+              <BarChart3 size={20} />
+            </div>
+          </div>
+          <div className="mt-2 text-xs text-green-600 flex items-center">
+            <TrendingUp size={14} className="mr-1" />
+            <span>0.5% increase this month</span>
           </div>
         </div>
       </div>
-
-      {/* Modal Overlays */}
-      {showResearchPanel && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <ResearchPanel onClose={() => setShowResearchPanel(false)} />
+      
+      {/* Recent content section */}
+      <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">Recent Content</h2>
+          <Link to="/generate">
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Plus size={16} />
+              <span>Create New</span>
+            </Button>
+          </Link>
+        </div>
+        
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-2 text-muted-foreground">Loading content...</span>
+          </div>
+        ) : (
+          <ContentGrid
+            items={recentContent}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onView={handleView}
+            onShare={handleShare}
+            emptyMessage="You haven't created any content yet. Click 'Create New' to get started."
+          />
+        )}
+        
+        {recentContent.length > 0 && (
+          <div className="mt-4 text-center">
+            <Button variant="ghost" size="sm">View All Content</Button>
+          </div>
+        )}
+      </div>
+      
+      {/* Quick actions and Activity feed in two columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Quick actions */}
+        <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
+          <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+          <div className="space-y-3">
+            <Link to="/generate" className="block">
+              <Button variant="outline" className="w-full justify-start text-left">
+                <Plus size={16} className="mr-2" />
+                Create New Content
+              </Button>
+            </Link>
+            <Link to="/dashboard/analytics" className="block">
+              <Button variant="outline" className="w-full justify-start text-left">
+                <BarChart2 size={16} className="mr-2" />
+                View Analytics
+              </Button>
+            </Link>
+            <Link to="/profile" className="block">
+              <Button variant="outline" className="w-full justify-start text-left">
+                <Settings size={16} className="mr-2" />
+                Manage Account
+              </Button>
+            </Link>
           </div>
         </div>
-      )}
-
-      {showPreferencesPanel && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <PreferencesPanel userId={userId} onClose={() => setShowPreferencesPanel(false)} />
+        
+        {/* Activity feed */}
+        <div className="bg-card border border-border rounded-lg p-6 shadow-sm lg:col-span-2">
+          <h2 className="text-xl font-semibold mb-4">Activity Feed</h2>
+          <div className="space-y-4">
+            {activityItems.map((item) => (
+              <div key={item.id} className="flex items-start pb-4 border-b border-border last:border-0 last:pb-0">
+                <div className="mr-3 mt-0.5">{item.icon}</div>
+                <div className="flex-1">
+                  <p className="text-sm">{item.content}</p>
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center">
+                    <Clock size={12} className="mr-1" />
+                    {item.time}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 text-center">
+            <Button variant="ghost" size="sm">View All Activity</Button>
           </div>
         </div>
-      )}
-
-      {showAnalyticsPanel && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <AnalyticsPanel userId={userId} onClose={() => setShowAnalyticsPanel(false)} />
-          </div>
-        </div>
-      )}
+      </div>
     </div>
-  )
-} 
+  );
+};
+
+export default Dashboard;

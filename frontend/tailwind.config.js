@@ -1,9 +1,6 @@
-import type { Config } from 'tailwindcss'
-import defaultTheme from 'tailwindcss/defaultTheme'
-import animatePlugin from 'tailwindcss-animate'
-
-const config: Config = {
-  darkMode: "class",
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: ["class"],
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -57,17 +54,14 @@ const config: Config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
-      fontFamily: {
-        sans: ["var(--font-sans)", ...defaultTheme.fontFamily.sans],
-      },
       keyframes: {
         "accordion-down": {
-          from: { height: '0' },
+          from: { height: 0 },
           to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: '0' },
+          to: { height: 0 },
         },
       },
       animation: {
@@ -76,7 +70,5 @@ const config: Config = {
       },
     },
   },
-  plugins: [animatePlugin],
+  plugins: [require("tailwindcss-animate")],
 }
-
-export default config

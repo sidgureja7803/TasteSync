@@ -1,29 +1,88 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { CopilotKit } from '@copilotkit/react-core'
-import { CopilotSidebar } from '@copilotkit/react-ui'
-import LandingPage from './pages/LandingPage'
-import Dashboard from './pages/Dashboard'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { ClerkProvider } from '@clerk/clerk-react'
+import { AuthProvider, useAuthContext } from './context/AuthContext'
+import { DocumentsProvider } from './context/DocumentsContext'
+import { ContentProvider } from './context/ContentContext'
+import { AppProvider } from './context/AppContext'
+import { ToastProvider } from './components/ui/toast-container'
 import './App.css'
 
-function App() {
+// Layouts
+import RootLayout from './layouts/RootLayout'
+import AuthLayout from './layouts/AuthLayout'
+import DashboardLayout from './layouts/DashboardLayout'
+
+// Pages
+import Home from './pages/Home'
+import Dashboard from './pages/Dashboard'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import Profile from './pages/Profile.tsx'
+import ContentDetail from './pages/ContentDetail'
+import Generate from './pages/Generate'
+
+// Auth guard component
+const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isSignedIn, isLoading } = useAuthContext();
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+  
+  if (!isSignedIn) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+function App(): React.ReactElement {
+  // Get the Clerk publishable key from environment variables
+  const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '';
+
   return (
-    <CopilotKit runtimeUrl="/api/copilotkit">
-      <Router>
-        <div className="flex h-screen">
-          <div className="flex-1">
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-            </Routes>
-          </div>
-          <CopilotSidebar 
-            instructions="You are a content optimization assistant. Help users transform their long-form content into platform-specific social media posts. You can rewrite content in different tones, optimize for different platforms like Twitter, LinkedIn, and email, and provide engagement suggestions."
-            defaultOpen={false}
-          />
-        </div>
-      </Router>
-    </CopilotKit>
+    <ClerkProvider publishableKey={clerkPubKey}>
+      <AuthProvider>
+        <AppProvider>
+          <DocumentsProvider>
+            <ContentProvider>
+              <ToastProvider>
+                <Router>
+                  <Routes>
+                    {/* Root routes */}
+                    <Route element={<RootLayout />}>
+                      <Route path="/" element={<Home />} />
+                    </Route>
+                    
+                    {/* Auth routes */}
+                    <Route element={<AuthLayout />}>
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/signup" element={<Signup />} />
+                    </Route>
+                    
+                    {/* Dashboard routes (authenticated) */}
+                    <Route element={
+                      <RequireAuth>
+                        <DashboardLayout />
+                      </RequireAuth>
+                    }>
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/content/:id" element={<ContentDetail />} />
+                      <Route path="/generate" element={<Generate />} />
+                    </Route>
+                    
+                    {/* Catch all - redirect to home */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Router>
+              </ToastProvider>
+            </ContentProvider>
+          </DocumentsProvider>
+        </AppProvider>
+      </AuthProvider>
+    </ClerkProvider>
   )
 }
 
